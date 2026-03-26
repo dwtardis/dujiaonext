@@ -1,53 +1,25 @@
 # 独角next前台魔改
 
-# HOME页增加公告栏
-1.在 `\src\views\Home.vue` 修改如下
-
-在第 2 行 `<div class="home-page min-h-screen theme-page">` 之后，第 5 行 `<template v-if="templateMode === 'list'">` 之前，插入公告横幅 HTML。
-
+# HOME页
+1.在 <script setup> 的 import 区域，import { getImageUrl } 那行后面加一行：
 ```vue
-<!-- Notice Bar -->
-<div
-  v-if="latestNotice && !noticeBarDismissed"
-  class="relative z-20 border-b theme-border bg-blue-50 dark:bg-blue-950/30"
->
-  <div class="container mx-auto px-4">
-    <div class="flex items-center justify-between gap-4 py-3">
-      <div class="flex items-center gap-3 min-w-0">
-        <span class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-        </span>
-        <router-link
-          :to="`/blog/${latestNotice.slug}`"
-          class="text-sm font-medium text-blue-800 dark:text-blue-200 truncate hover:underline"
-        >
-          {{ getLocalizedText(latestNotice.title) }}
-          <span v-if="getLocalizedText(latestNotice.summary)" class="ml-2 text-blue-600/70 dark:text-blue-300/70 font-normal">
-            — {{ getLocalizedText(latestNotice.summary) }}
-          </span>
-        </router-link>
-      </div>
-      <button
-        type="button"
-        class="flex-shrink-0 p-1 rounded-md text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-        @click="noticeBarDismissed = true"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-  </div>
-</div>
+import { processHtmlForDisplay } from '../utils/content'
 ```
 
-2.在第 390 行（const quickBuyVisible = ref(false) 之后），插入：
+2.替换变量声明  
+找到：
 ```vue
-const latestNotice = ref<any>(null)
-const noticeBarDismissed = ref(false)
+const products = ref<any[]>([])
+const posts = ref<any[]>([])
+const quickBuyProduct = ref<any>(null)
+const quickBuyVisible = ref(false)
+```
+替换为：
+```vue
+const products = ref<any[]>([])
+const quickBuyProduct = ref<any>(null)
+const quickBuyVisible = ref(false)
+const noticeContent = ref('')
 
 const loadLatestNotice = async () => {
   try {
@@ -55,9 +27,11 @@ const loadLatestNotice = async () => {
     const notices = response.data.data || []
     if (notices.length > 0) {
       const notice = notices[0]
-      const title = getLocalizedText(notice.title)
-      if (title && title.trim()) {
-        latestNotice.value = notice
+      const detailRes = await postAPI.detail(notice.slug)
+      const post = detailRes.data.data
+      const content = getLocalizedText(post.content)
+      if (content && content.trim()) {
+        noticeContent.value = processHtmlForDisplay(content)
       }
     }
   } catch (error) {
@@ -66,7 +40,16 @@ const loadLatestNotice = async () => {
 }
 ```
 
-3.onMounted 中加入调用
+3.删除 formatDate、goToPost、loadLatestPosts  
+找到这三个函数，全部删除：
+```vue
+const formatDate = (dateString: string) => { ... }
+const goToPost = (slug: string) => { ... }
+const loadLatestPosts = async () => { ... }
+```
+
+4.修改 onMounted 生命周期  
+找到：
 ```vue
 onMounted(async () => {
   if (templateMode.value === 'list') {
@@ -76,66 +59,109 @@ onMounted(async () => {
   }
 })
 ```
-改为
+替换为：
 ```vue
 onMounted(async () => {
   if (templateMode.value === 'list') {
     await Promise.all([loadBanners(), listInitialize(), loadLatestNotice()])
   } else {
-    await Promise.all([loadBanners(), loadFeaturedProducts(), loadLatestPosts(), loadLatestNotice()])
+    await Promise.all([loadBanners(), loadFeaturedProducts(), loadLatestNotice()])
   }
 })
 ```
 
-# Home.vue — 添加浮动 Telegram 图标
-在模板最末尾、</div> 关闭标签之前（第 393 行 </ProductQuickBuy> 之后、第 394 行 </div> 之前）添加：
+5.LIST 模式模板 — 在 Banner 和商品列表之间插入公告
+找到 list 模式中 Banner </section> 后面的：
 ```vue
-    <!-- Floating Telegram Button -->
-    <a
-      v-if="appStore.config?.contact?.telegram"
-      :href="appStore.config.contact.telegram"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="fixed right-5 bottom-24 md:bottom-8 z-50 w-12 h-12 rounded-full bg-[#2AABEE] text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center"
-    >
-      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
-      </svg>
-    </a>
+      <!-- Main: Left Categories + Right Product List -->
+      <section class="relative z-10 pb-6" :class="showHeroSection ? 'pt-6' : 'pt-24'">
 ```
-位置在这里（上下文）：
+替换为：
 ```vue
-    <ProductQuickBuy
-      v-if="quickBuyProduct"
-      :product="quickBuyProduct"
-      :visible="quickBuyVisible"
-      @update:visible="quickBuyVisible = $event"
-    />
-  </div>
-```
-变成：
+      <!-- Notice Content (List Mode) -->
+      <section v-if="noticeContent" class="relative z-10" :class="showHeroSection ? 'pt-12' : 'pt-26'">
+        <div class="container mx-auto px-4">
+          <div class="rounded-xl border theme-panel p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-1 h-5 rounded-full theme-accent-stick flex-shrink-0"></span>
+              <h3 class="text-base font-semibold theme-text-primary">{{ t('nav.notice') }}</h3>
+            </div>
+            <div
+              v-html="noticeContent"
+              class="text-sm theme-text-secondary prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-p:leading-relaxed"
+            ></div>
+          </div>
+        </div>
+      </section>
 
+      <!-- Main: Left Categories + Right Product List -->
+      <section class="relative z-10 pb-6" :class="showHeroSection || noticeContent ? 'pt-6' : 'pt-24'">
+```
+
+6.CARD 模式模板 — 删除"最新动态"，加入公告 + Telegram
+找到 card 模式中精选商品 </section> 之后的所有内容，直到 </template> 结束：
 ```vue
+    <!-- 原来的 282 行 -->
+    <section id="featured" class="relative z-10 pb-14" :class="showHeroSection ? 'pt-14' : 'pt-32 md:pt-36'">
+      ...精选商品...
+    </section>
+
+    <hr class="theme-section-divider ..." />
+
+    <section class="relative z-10 py-12">
+      ...最新动态（博客/公告链接 + 文章列表）...
+    </section>
+    </template>
+
+    <ProductQuickBuy ... />
+  </div>
+```
+替换为：
+```vue
+    <!-- Notice Content -->
+    <section v-if="noticeContent" class="relative z-10" :class="showHeroSection ? 'pt-12' : 'pt-26'">
+      <div class="container mx-auto px-4">
+        <div class="rounded-xl border theme-panel p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-1 h-5 rounded-full theme-accent-stick flex-shrink-0"></span>
+            <h3 class="text-base font-semibold theme-text-primary">{{ t('nav.notice') }}</h3>
+          </div>
+          <div
+            v-html="noticeContent"
+            class="text-sm theme-text-secondary prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-p:leading-relaxed"
+          ></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="featured" class="relative z-10 pb-14" :class="noticeContent ? 'pt-8' : showHeroSection ? 'pt-12' : 'pt-26'">
+      ...精选商品（保持不变）...
+    </section>
+
+    </template>
+
     <ProductQuickBuy
       v-if="quickBuyProduct"
       :product="quickBuyProduct"
       :visible="quickBuyVisible"
       @update:visible="quickBuyVisible = $event"
     />
-    <!-- Floating Telegram Button -->
+
     <a
       v-if="appStore.config?.contact?.telegram"
       :href="appStore.config.contact.telegram"
       target="_blank"
       rel="noopener noreferrer"
-      class="fixed right-5 bottom-24 md:bottom-8 z-50 w-12 h-12 rounded-full bg-[#2AABEE] text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center"
+      class="fixed right-5 bottom-24 md:bottom-8 z-50 w-16 h-16 rounded-full bg-[#2AABEE] text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center"
+      aria-label="Telegram"
     >
-      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+      <svg class="w-9 h-9" fill="currentColor" viewBox="0 0 24 24">
         <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
       </svg>
     </a>
   </div>
 ```
+
 
 # Navbar.vue — 去掉快捷导航按钮
 删除\src\components\Navbar.vue第 13-22 行的 Desktop Menu
