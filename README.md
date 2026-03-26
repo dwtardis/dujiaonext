@@ -1,3 +1,5 @@
+# 独角next前台魔改
+
 # HOME页增加公告栏
 1.在 `\src\views\Home.vue` 修改如下
 
