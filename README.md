@@ -161,6 +161,11 @@ onMounted(async () => {
     </a>
   </div>
 ```
+公告区域插入到 Banner 后、精选商品前  
+
+分隔线 + 最新动态整个 section 全部删除  
+
+精选商品的 :class 改为 noticeContent ? 'pt-8' : showHeroSection ? 'pt-12' : 'pt-26'  
 
 
 # Navbar.vue — 去掉快捷导航按钮
