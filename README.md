@@ -199,6 +199,21 @@ const menuItems = computed(() =>
 )
 ```
 
+8-10行
+```
+      <router-link to="/" class="theme-wordmark group relative" :title="brandSiteName">
+        <span class="theme-wordmark-text">{{ brandSiteName }}</span>
+      </router-link>
+```
+改成
+```
+      <router-link to="/" class="flex items-center gap-2 group" :title="brandSiteName">
+        <img src="/dj.svg" alt="Logo" class="h-7 w-7 shrink-0" />
+        <span class="theme-wordmark">
+          <span class="theme-wordmark-text">{{ brandSiteName }}</span>
+        </span>
+      </router-link>
+```
 # footer替换
 ```vue
 <template>
