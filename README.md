@@ -207,11 +207,9 @@ const menuItems = computed(() =>
 ```
 改成
 ```
-      <router-link to="/" class="flex items-center gap-2 group" :title="brandSiteName">
-        <img src="/dj.svg" alt="Logo" class="h-7 w-7 shrink-0" />
-        <span class="theme-wordmark">
-          <span class="theme-wordmark-text">{{ brandSiteName }}</span>
-        </span>
+      <router-link to="/" class="theme-wordmark group relative flex items-center gap-2" :title="brandSiteName">
+        <img src="/dj.svg" alt="Logo" class="h-5 w-5 shrink-0" />
+        <span class="theme-wordmark-text">{{ brandSiteName }}</span>
       </router-link>
 ```
 # footer替换
