@@ -199,7 +199,7 @@ const menuItems = computed(() =>
 )
 ```
 
-8-10行
+8-10行加图标
 ```
       <router-link to="/" class="theme-wordmark group relative" :title="brandSiteName">
         <span class="theme-wordmark-text">{{ brandSiteName }}</span>
@@ -212,6 +212,44 @@ const menuItems = computed(() =>
         <span class="theme-wordmark-text">{{ brandSiteName }}</span>
       </router-link>
 ```
+
+删除移动端导航
+```
+          <!-- Navigation items not in bottom nav -->
+          <template v-for="item in mobileDrawerItems" :key="item.key">
+            <router-link v-if="item.type === 'route'" :to="item.path" @click="showMobileMenu = false"
+              class="block w-full text-left px-4 py-3 rounded-xl theme-nav-link text-sm min-h-[44px] flex items-center gap-3"
+              active-class="theme-nav-link-active">
+              <svg class="w-5 h-5 shrink-0 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" :d="item.icon" />
+              </svg>
+              {{ item.label.startsWith('nav.') ? t(item.label) : item.label }}
+            </router-link>
+            <a v-else :href="item.path" :target="item.target" rel="noopener noreferrer" @click="showMobileMenu = false"
+              class="block w-full text-left px-4 py-3 rounded-xl theme-nav-link text-sm min-h-[44px] flex items-center gap-3">
+              <svg class="w-5 h-5 shrink-0 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" :d="item.icon" />
+              </svg>
+              {{ item.label }}
+            </a>
+          </template>
+```
+搜索 dujiao-next 改成自己网站名称  
+
+删除Script脚本部分
+| 行号 | 内容 |
+|---|---|
+| 219 | `isListMode` |
+| 222-226 | `builtinNavDefs` |
+| 228-235 | `NavItem` 接口 |
+| 237-243 | `navConfig` |
+| 245-248 | `getCustomItemTitle` |
+| 250-267 | `presetIcons` + `defaultIcon` |
+| 269-287 | `buildCustomNavItems` |
+| 289-297 | `buildBuiltinNavItems` |
+| 299-309 | `menuItems` |
+| 311-315 | `mobileDrawerItems` |
+
 # footer替换
 ```vue
 <template>
@@ -220,7 +258,23 @@ const menuItems = computed(() =>
     <div class="container mx-auto px-4 py-6 relative z-10">
       <div
         class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs theme-text-muted">
-        <p>&copy; {{ currentYear }} {{ brandSiteName }}. {{ t('footer.rights') }}</p>
+        <div class="space-y-1 text-center md:text-left">
+          <p>&copy; {{ currentYear }} {{ brandSiteName }}. {{ t('footer.rights') }}</p>
+          <p class="flex items-center justify-center gap-1 md:justify-start">
+            <span>Open Source: Dujiao-Next ·</span>
+            <a
+              href="https://github.com/dujiao-next"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1 hover:text-gray-900 dark:hover:text-gray-400"
+            >
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 .5C5.648.5.5 5.648.5 12c0 5.084 3.292 9.4 7.86 10.922.575.106.784-.25.784-.556 0-.273-.01-1-.016-1.962-3.197.694-3.872-1.54-3.872-1.54-.522-1.326-1.274-1.678-1.274-1.678-1.042-.713.079-.699.079-.699 1.152.081 1.758 1.183 1.758 1.183 1.024 1.755 2.688 1.248 3.343.954.104-.742.401-1.248.73-1.535-2.552-.29-5.236-1.276-5.236-5.678 0-1.254.448-2.28 1.182-3.084-.118-.29-.512-1.457.112-3.04 0 0 .964-.308 3.158 1.178a10.98 10.98 0 0 1 2.876-.387c.976.004 1.96.132 2.878.387 2.192-1.486 3.154-1.178 3.154-1.178.626 1.583.232 2.75.114 3.04.736.804 1.18 1.83 1.18 3.084 0 4.413-2.688 5.384-5.248 5.668.412.354.78 1.052.78 2.12 0 1.53-.014 2.764-.014 3.14 0 .31.206.668.79.554C20.212 21.396 23.5 17.083 23.5 12 23.5 5.648 18.352.5 12 .5Z" />
+              </svg>
+              <span>https://github.com/dujiao-next</span>
+            </a>
+          </p>
+        </div>
         <div v-if="footerLinks.length" class="flex flex-wrap items-center gap-x-4 gap-y-1 justify-center md:justify-end">
           <a
             v-for="link in footerLinks"
@@ -248,7 +302,7 @@ const config = computed(() => appStore.config)
 
 const brandSiteName = computed(() => {
   const siteName = config.value?.brand?.site_name
-  return typeof siteName === 'string' && siteName.trim() ? siteName.trim() : '你的网站title'
+  return typeof siteName === 'string' && siteName.trim() ? siteName.trim() : 'Dujiao-Next'
 })
 
 const footerLinks = computed(() => {
