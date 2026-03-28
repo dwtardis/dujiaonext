@@ -40,12 +40,16 @@ const loadLatestNotice = async () => {
 }
 ```
 
-3.删除 formatDate、goToPost、loadLatestPosts  
-找到这三个函数，全部删除：
+3.删除 formatDate、goToPost、loadLatestPosts...  
+找到这七个函数，全部删除：
 ```vue
 const formatDate = (dateString: string) => { ... }
 const goToPost = (slug: string) => { ... }
 const loadLatestPosts = async () => { ... }
+const navBuiltin = computed(() => (appStore.config?.nav_config as { builtin?: Record<string, boolean> } | undefined)?.builtin)
+const blogEnabled = computed(() => navBuiltin.value?.blog !== false)
+const noticeEnabled = computed(() => navBuiltin.value?.notice !== false)
+const latestSectionVisible = computed(() => blogEnabled.value || noticeEnabled.value)
 ```
 
 4.修改 onMounted 生命周期  
