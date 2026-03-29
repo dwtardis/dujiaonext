@@ -171,6 +171,59 @@ onMounted(async () => {
 
 精选商品的 :class 改为 noticeContent ? 'pt-8' : showHeroSection ? 'pt-12' : 'pt-26'  
 
+# HOME列表显示库存
+user-main/src/composables/useProduct.ts的getStockStatusLabel 函数从：
+```vue
+  const getStockStatusLabel = (product: any) => {
+    const status = product?.stock_status || ''
+    if (status === 'unlimited') return t('products.stockStatus.unlimited')
+    if (status === 'out_of_stock') return t('products.stockStatus.outOfStock')
+    if (status === 'low_stock') {
+      const count = Number(product?.fulfillment_type === 'manual' ? product?.manual_stock_available : product?.auto_stock_available)
+      if (Number.isFinite(count) && count > 0) {
+        return t('products.stockStatus.lowStockCount', { count })
+      }
+      return t('products.stockStatus.lowStock')
+    }
+    return t('products.stockStatus.inStock')
+  }
+```
+改为：
+```vue
+const getStockStatusLabel = (product: any) => {
+  const status = product?.stock_status || ''
+  if (status === 'unlimited') return t('products.stockStatus.unlimited')
+
+  const count = Number(
+    product?.fulfillment_type === 'manual'
+      ? product?.manual_stock_available
+      : product?.auto_stock_available
+  )
+
+  if (Number.isFinite(count) && count >= 0) {
+    return `库存剩余 ${count} 件`
+  }
+
+  return t('products.stockStatus.inStock')
+}
+```
+# 移动端也显示库存
+user-main\src\components\ProductListItem.vue 去掉移动端库存标签的 v-if 条件
+```
+        <span v-if="product.stock_status === 'out_of_stock' || product.stock_status === 'low_stock'"
+          class="sm:hidden theme-badge text-[10px]"
+          :class="getStockBadgeClass(product.stock_status)">
+          {{ getStockStatusLabel(product) }}
+        </span>
+```
+改成：
+```
+<span
+  class="sm:hidden theme-badge text-[10px]"
+  :class="getStockBadgeClass(product.stock_status)">
+  {{ getStockStatusLabel(product) }}
+</span>
+```
 
 # Navbar.vue — 去掉快捷导航按钮
 删除\src\components\Navbar.vue第 13-22 行的 Desktop Menu
