@@ -371,3 +371,18 @@ const footerLinks = computed(() => {
 const currentYear = new Date().getFullYear()
 </script>
 ```
+# api文档修改隐藏前端销量
+\dujiao-next-main\internal\http\handlers\public\public.go中PublicSKUView
+添加
+```
+	AutoStockSold        *models.Money `json:"auto_stock_sold,omitempty"`
+	ManualStockSold      *models.Money `json:"manual_stock_sold,omitempty"`
+```
+PublicProductView中添加
+```
+	AutoStockSold        *struct{}              `json:"auto_stock_sold,omitempty"`
+	ManualStockSold      *struct{}              `json:"manual_stock_sold,omitempty"`
+```
+
+删除item.AutoStockSold = 0和item.AutoStockSold = autoSold  
+api打包命令 $env:CGO_ENABLED="0"; $env:GOOS="linux"; $env:GOARCH="amd64"; go build -trimpath -tags release -ldflags="-s -w" -o dujiao-next ./cmd/server
