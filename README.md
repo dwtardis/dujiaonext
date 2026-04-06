@@ -150,19 +150,6 @@ onMounted(async () => {
       :visible="quickBuyVisible"
       @update:visible="quickBuyVisible = $event"
     />
-
-    <a
-      v-if="appStore.config?.contact?.telegram"
-      :href="appStore.config.contact.telegram"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="fixed right-5 bottom-24 md:bottom-8 z-50 w-16 h-16 rounded-full bg-[#2AABEE] text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center"
-      aria-label="Telegram"
-    >
-      <svg class="w-9 h-9" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
-      </svg>
-    </a>
   </div>
 ```
 公告区域插入到 Banner 后、精选商品前  
@@ -224,6 +211,15 @@ user-main\src\components\ProductListItem.vue 去掉移动端库存标签的 v-if
   {{ getStockStatusLabel(product) }}
 </span>
 ```
+删除
+```
+        <span v-if="product.category?.name" class="hidden sm:inline text-[11px] theme-text-muted uppercase tracking-wider truncate max-w-[80px] flex-shrink-0">
+          {{ getLocalizedText(product.category.name) }}
+        </span>
+        <span v-if="product.category?.name" class="hidden sm:inline text-[11px] theme-text-muted opacity-30 flex-shrink-0">·</span>
+```
+		
+
 
 # Navbar.vue — 去掉快捷导航按钮
 删除\src\components\Navbar.vue第 13-22 行的 Desktop Menu
